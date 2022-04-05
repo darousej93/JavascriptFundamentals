@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>shuffle</title>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+
+  <script>
+    var canvas = document.getElementById("canvas")
+    var ctx = canvas.getContext("2d")
+    
+    setInterval(update,150)
+    x = 0
+    y = 0
+    speedx = 5
+    speedy = 6
+	var shuffleCount = 0
+    var deck = []
+    for(var i = 0; i < 50; i++){
+       deck.push(i)        
+     }
+	 var width = 50
+     ctx.font = "30px Arial";
+    
+	var deckLength = deck.length
+	
+	function update(){
+      ctx.clearRect(0,0,1000,1000)     
+
+    var total = 0	  
+    var count = 0    
+     for(var i =0;i< 10; i++){
+       for(var j = 0; j < 5;j++){
+		ctx.fillStyle = "grey"
+         ctx.fillRect(j * (width + 1) + 10, i * (width + 1),width,width)
+		ctx.fillStyle = "black"
+		ctx.fillText(deck[count],j * (width + 1) + 25, i * (width + 1) +27)
+		total = total + deck[count]
+		count++
+	   }       
+     }
+	 
+     ctx.fillText(total,400,50)
+	 if(deckLength > 0){
+		 var randomCard = Math.floor(Math.random() * deckLength)
+		 deckLength = deckLength - 1
+		 
+		 var temp = deck[deckLength] //
+		 deck[deckLength] = deck[randomCard]
+		 deck[randomCard] = temp
+		 
+		 /*
+		  so we start at the number of cards to shuffle
+		  in this case that is 50
+		  as we go through shuffling we count down from 50 to zero.
+		  each time we loop we are taking the deck[deckLength] card, 
+		  deckLength being the var counting from 50 to zero,
+		  we are taking that card and swapping it with a random card.
+		  since we are counting down, that deck[deckLength] card won't be touched again,
+		  since the next time it will be looking at the card below that card.
+		  the real stroke of genius is that the math.random function will be looking for 
+		  a random number between 0 and deckLength-1, meaning it also won't touch
+		  the deck[deckLength] card. 
+		 */
+		 
+		 }
+    }
+    
+    
+    
+  </script>
+  
+  </body>
+</html>

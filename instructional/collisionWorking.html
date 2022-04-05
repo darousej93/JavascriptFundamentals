@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #canvas {
+        border-style: solid;
+
+        border-width: 2px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas" height="700" width="1400"> </canvas>
+    <div id="count"></div>
+  </body>
+</html>
+
+<script>
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  var x = [];
+  var y = [];
+  var speedx = [];
+  var speedy = [];
+  var color = [];
+  var radius = [];
+  var radiusMax = 10;
+  var radiusMin = 10;
+  speedrange = 30;
+  var width = 1000;
+  var height = 600;
+  var creationCollisions = 0;
+
+  for (var i = 0; i < 400; i = i + 1) {
+    x[i] = Math.random() * (width - radiusMax) + 2;
+    y[i] = Math.random() * (height - radiusMax) + 2;
+    speedx[i] = Math.random() * speedrange - speedrange / 2;
+    speedy[i] = Math.random() * speedrange - speedrange / 2;
+    radius[i] = Math.random() * (radiusMax - radiusMin) + radiusMin;
+    color[i] = "hsl(" + Math.random() * 360 + ", 100%, 50%)";
+
+    for (let j = 0; j < x.length; j++) {
+      if (j !== i) {
+        if (
+          Math.hypot(
+            Math.abs(x[i]) - Math.abs(x[j]),
+            Math.abs(y[i]) - Math.abs(y[j])
+          ) <=
+          radius[i] + radius[j]
+        ) {
+          //circle is inside of other circle so delete it and start over
+          ctx.beginPath();
+          ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(x[j], y[j], radius[j], 0, Math.PI * 2);
+          ctx.fill();
+          i = i - 1;
+          creationCollisions++;
+          //this will set the i back and have it create a different circle
+        }
+      }
+    }
+  }
+  document.getElementById("count").innerText = creationCollisions;
+
+  setInterval(main, 50);
+
+  function main() {
+    ctx.clearRect(0, 0, 2000, 1000);
+
+    for (let i = 0; i < x.length; i++) {
+      if (x[i] > width - radius[i] / 2) {
+        x[i] = width - radius[i] / 2 - 1;
+        speedx[i] = -Math.abs(speedx[i]);
+      }
+      if (x[i] < 0 + radius[i]) {
+        x[i] = 0 + radius[i] + 1;
+        speedx[i] = Math.abs(speedx[i]);
+      }
+      if (y[i] > height - radius[i] / 2) {
+        y[i] = height - radius[i] / 2 - 1;
+        speedy[i] = -Math.abs(speedy[i]);
+      }
+      if (y[i] < 0 + radius[i]) {
+        y[i] = 0 + radius[i] + 1;
+        speedy[i] = Math.abs(speedy[i]);
+      }
+      for (let j = 0; j < x.length; j++) {
+        if (j !== i) {
+          if (
+            Math.hypot(
+              Math.abs(x[i]) - Math.abs(x[j]),
+              Math.abs(y[i]) - Math.abs(y[j])
+            ) <=
+            radius[i] + radius[j]
+          ) {
+            /*             ctx.beginPath();
+            ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x[j], y[j], radius[j], 0, Math.PI * 2);
+            ctx.fill(); */
+            //collision has both circles switch speeds
+
+        
+
+            //have the circles take a step back so they don't phase into each other
+           /*  if (speedx[i] > 0) {
+              x[i] = x[i] - speedx[i];
+              x[j] = x[j] + speedx[j];
+              console.log("if 1")
+            } else {
+              x[i] = x[i] + speedx[i];
+              x[j] = x[j] - speedx[j];
+              console.log("else 1")
+            }
+            
+            if (speedy[i] > 0) {
+              y[i] = y[i] - speedy[i];
+              y[j] = y[j] - speedy[j];
+              console.log("if 2")
+            } else {
+              y[i] = y[i] + speedy[i];
+              y[j] = y[j] + speedy[j];
+              console.log("else 2")
+            } */
+           
+       
+
+            var tempx = speedx[j]; //temp values because you can't do it without
+            var tempy = speedy[j];
+            speedy[j] = speedy[i];
+            speedx[j] = speedx[i];
+            speedx[i] = tempx;
+            speedy[i] = tempy;
+            //push them back
+
+            /*       var hypot =  Math.hypot(Math.abs(x[i]) - Math.abs(x[j]),Math.abs(y[i]) - Math.abs(y[j]))
+            var ajacentAngle = Math.atan((Math.abs(x[i]) - Math.abs(x[j]))/Math.abs(y[i]) - Math.abs(y[j]))//x is opposite y is ajacant
+            var offsetxj = Math.sin(ajacentAngle) * radius[j]/2
+            var offsetxi = Math.sin(ajacentAngle) * radius[i]/2
+            var offsetyj = Math.cos(ajacentAngle) * radius[j]/2
+            var offsetyi = Math.cos(ajacentAngle) * radius[i]  / 2 */
+
+            /*
+               x[i] = x[i] - offsetxi
+                x[j] = x[j] - offsetxj
+                y[i] = y[i] + offsetyi
+                y[j] = y[j] + offsetyj 
+             
+            if(x[i]>x[j]){ //if we assume xi,yi is in the middle, then xj,yj is...
+              if(y[i]>y[j]){//top left   x and y i is bigger 
+                //add half offset to xi and yi and subtract from xj and yj
+                x[i] = x[i] - offsetxi
+                x[j] = x[j] + offsetxj
+                y[i] = y[i] - offsetyi
+                y[j] = y[j] + offsetyj
+              }else{ //bottom left  xi is bigger and yj is bigger
+                x[i] = x[i] - offsetxi
+                x[j] = x[j] + offsetxj
+                y[i] = y[i] + offsetyi
+                y[j] = y[j] - offsetyj
+              }
+            }else{
+              if(y[i]>y[j]){//top right    xj is bigger and yi is bigger
+
+                x[i] = x[i] + offsetxi
+                x[j] = x[j] - offsetxj
+                y[i] = y[i] + offsetyi
+                y[j] = y[j] - offsetyj
+              }else{//bottom right    xj and yj are bigger
+
+                x[i] = x[i] + offsetxi
+                x[j] = x[j] - offsetxj
+                y[i] = y[i] - offsetyi
+                y[j] = y[j] + offsetyj
+              }
+            }
+             
+            ctx.fillStyle = "red"
+            ctx.beginPath();
+            ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x[j], y[j], radius[j], 0, Math.PI * 2);
+            ctx.fill();
+          
+            x[i] = x[i] - speedx[i];
+            y[i] = y[i] - speedy[i];
+
+            ctx.fillStyle = "blue"
+            ctx.beginPath();
+            ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x[j], y[j], radius[j], 0, Math.PI * 2);
+            ctx.fill();
+            */
+          }
+        }
+      }
+      x[i] = x[i] + speedx[i];
+      y[i] = y[i] + speedy[i];
+      ctx.fillStyle = color[i];
+      ctx.beginPath();
+      ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "black";
+      // ctx.fillText(speedx[i] + ", " + speedy[i], x[i], y[i]);
+    }
+  }
+</script>

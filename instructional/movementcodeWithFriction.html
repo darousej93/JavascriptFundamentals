@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Movement</title>
+  <style>
+
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+
+  <script>
+    var canvas = document.getElementById("canvas")
+    var ctx = canvas.getContext("2d")
+  
+	
+	var x =125
+	var y  = 5
+	var xspeed= 0
+	var yspeed=0
+	var boxWidth = 50
+	var boxHeight = 50
+	var acceleration = 4 //ammount that gets added each frame to the speed when you press a button
+	var wpres = false
+	var dpres = false
+	var apres = false
+	var spres = false
+	var friction = 1
+	var frictionBoundry = 1
+	var maxSpeed = 10
+	
+	document.addEventListener("keydown", keydownpress,false)
+	document.addEventListener("keyup", keyuppress,false)
+	setInterval(update, 50)
+
+	function keydownpress(e){
+		if(e.key === "w"){
+			wpres = true
+		}
+		if(e.key === "a"){
+			apres = true
+		}
+		if(e.key === "s"){
+			spres = true
+		}
+		if(e.key === "d"){
+			dpres = true
+		}
+			
+	}
+	function keyuppress(e){
+		if(e.key === "w"){
+			wpres = false
+		}
+		if(e.key === "a"){
+			apres = false
+		}
+		if(e.key === "s"){
+			spres = false
+		}
+		if(e.key === "d"){
+			dpres = false
+		}
+	}
+	
+	function update(){
+		ctx.clearRect(0,0,1000,1000)
+		frictionCode()
+		x = x + xspeed
+		y = y + yspeed
+		maxSpeedCode()
+		ctx.fillRect(x,y,boxWidth,boxHeight)
+
+		if(wpres === true){
+			yspeed = yspeed - acceleration	
+		}
+		if(apres === true){
+			xspeed = xspeed - acceleration
+		}
+		if(spres === true){
+			yspeed = yspeed + acceleration
+		}
+		if(dpres === true){
+			xspeed = xspeed + acceleration
+		}
+	
+	
+		wallBoundry()
+	}
+    
+	function maxSpeedCode(){
+		if(xspeed > maxSpeed){ //you have to regulate both forwards and backwards speed
+			xspeed = maxSpeed
+		}else if(xspeed < -maxSpeed){
+			xspeed = -maxSpeed
+		}
+		if(yspeed > maxSpeed){ //you have to regulate both forwards and backwards speed
+			yspeed = maxSpeed
+		}else if(yspeed < -maxSpeed){
+			yspeed = -maxSpeed
+		}
+	}
+
+	function frictionCode(){
+		/*
+		so friction code is made up of three parts for each speed, for a total of six parts.
+		the basic friction code is just xspeed = xspeed - friction. Obviously all this does is slow down 
+		the speed by reducing it by a small ammount every frame. However if your speed is negative, subtracting will 
+		only speed you up. Therefore you must first check if your speed is positive or negative. However, once you get
+		this working you introduce an additional problem. If you are always slowing down then you never actually stop. Even if your
+		speed is zero, it will be subtracted. What we do for that is say, if your speed is less than some small ammount, say .5, then just stop. 
+
+		The actual code works like this
+			if( speed is greater than .5, it must be positive){
+				then subtract 1 from speed to slow it down
+			}
+			if (it is less than -.5, it must be negative){
+				then add 1 to it to slow it down 
+			}else if it is neither above .5 nor below -.5 then it must be inbetween -.5 and .5{
+				then just change the speed to 0 so it stops. 
+			}
+
+			To better understand how this works, I suggest you change the friction boundry to 0, which will be the same
+			as not having it at all, then change friction to 3 or above to really see the effects.
+
+			Note that having a friction boundry higher than the speed means you won't be able to move. 
+		*/
+		if(xspeed > frictionBoundry){ //check if the speed is positive or negative. 
+			xspeed = xspeed - friction
+		}else if(xspeed < -frictionBoundry){ //
+			xspeed = xspeed + friction
+		}else{ //if the speed is inbetween the boudnry, which should be some small number, then just set it to zero, otherwise it never stops moving.
+			xspeed = 0 //to figure out why we need this set the friciton boundry to 0 and set the friction a bit higher
+		}//even at low frictions, the box will continue to move a bit and never actually stop.
+		if(yspeed > frictionBoundry){ //check if the speed is positive or negative. 
+			yspeed = yspeed - friction
+		}else if(yspeed < -frictionBoundry){
+			yspeed = yspeed + friction
+		}else{
+			yspeed = 0
+		}
+	}
+
+	function wallBoundry(){
+		//so it collides with the wall and bounces, you can comment out the function call in update to get rid of this
+		if(x + boxWidth> canvas.width){
+			xspeed = -Math.abs(xspeed)
+		}
+		if(x < 0){
+			xspeed = Math.abs(xspeed)
+		}
+		if(y + boxHeight > canvas.height){
+			yspeed = -Math.abs(yspeed)
+		}
+		if(y < 0){
+			yspeed = Math.abs(yspeed)
+		}
+	}
+  </script>
+</body>
+</html>
+

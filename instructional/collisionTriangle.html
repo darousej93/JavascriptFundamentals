@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #canvas {
+        border-style: solid;
+
+        border-width: 2px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas" height="700" width="1400"> </canvas>
+    <div id="count"></div>
+  </body>
+</html>
+
+<script>
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  var x = [];
+  var y = [];
+  var speedx = [];
+  var speedy = [];
+  var color = [];
+  var radius = [];
+  var radiusMax = 10;
+  var radiusMin = 10;
+  var speedrange = 30;
+  var width = 1000;
+  var height = 600;
+  var mousex = 0;
+  var mousey = 0;
+  var oldMousex;
+  var oldMousey;
+  var mouseIsDown = false;
+
+  for (var i = 0; i < 2; i = i + 1) {
+    x[i] = Math.random() * (width - radiusMax) + 2;
+    y[i] = Math.random() * (height - radiusMax) + 2;
+    speedx[i] = 0//Math.random() * speedrange - speedrange / 2;
+    speedy[i] = 0//Math.random() * speedrange - speedrange / 2;
+    radius[i] = 50//Math.random() * (radiusMax - radiusMin) + radiusMin;
+    color[i] = "hsl(" + Math.random() * 360 + ", 100%, 50%)";
+  }
+  document.getElementById("canvas").addEventListener("mousemove", mouseTrack);
+  document.getElementById("canvas").addEventListener("mousedown", mouseDown);
+  document.getElementById("canvas").addEventListener("mouseup", mouseUp);
+
+  function mouseDown(e) {
+    mouseIsDown = true;
+    //document.getElementById("count").innerText = mousex - oldMousex;
+  }
+
+  function mouseUp() {
+    speedx[1] = mousex - oldMousex;
+    speedy[1] = mousey - oldMousey;
+    mouseIsDown = false;
+  }
+
+  function mouseTrack(e) {
+    mousex = e.layerX;
+    mousey = e.layerY;
+  }
+
+  setInterval(main, 50);
+
+  function main() {
+    if (mouseIsDown) {
+      x[1] = mousex;
+      y[1] = mousey;
+    }
+    oldMousex = mousex;
+    oldMousey = mousey;
+    ctx.clearRect(0, 0, 2000, 1000);
+
+    for (let i = 0; i < x.length; i++) {
+      if (x[i] > width - radius[i] / 2) {
+        x[i] = width - radius[i] / 2 - 1;
+        speedx[i] = -Math.abs(speedx[i]); //I'm using math.absolute to get the absolute value.
+        //you do this instead of just negating the speed to make sure it's going in the right direction
+        //like if it's going off the right side of the screen, it needs to have a negative xspeed, but if you are just doing -speedx you might end up flipping between -4 and 4
+        //math.abs forces it to be -speedx no matter what.
+      }
+      if (x[i] < 0 + radius[i]) {
+        x[i] = 0 + radius[i] + 1;
+        speedx[i] = Math.abs(speedx[i]);
+      }
+      if (y[i] > height - radius[i] / 2) {
+        y[i] = height - radius[i] / 2 - 1;
+        speedy[i] = -Math.abs(speedy[i]);
+      }
+      if (y[i] < 0 + radius[i]) {
+        y[i] = 0 + radius[i] + 1;
+        speedy[i] = Math.abs(speedy[i]);
+      }
+      
+      for (let j = 0; j < x.length; j++) {
+        if (j !== i) {
+          if (
+            Math.hypot(
+              Math.abs(x[i]) - Math.abs(x[j]),
+              Math.abs(y[i]) - Math.abs(y[j])
+            ) <=
+            radius[i] + radius[j]
+          ) {
+            var tempx = speedx[j]; //temp values because you can't do it without
+            var tempy = speedy[j];
+            speedy[j] = speedy[i];
+            speedx[j] = speedx[i];
+            speedx[i] = tempx;
+            speedy[i] = tempy;
+          }
+        }
+      }
+
+      x[i] = x[i] + speedx[i];
+      y[i] = y[i] + speedy[i];
+
+      ctx.fillStyle = color[i];
+      ctx.beginPath();
+      ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "black";
+    }
+
+    ctx.beginPath();
+      ctx.moveTo(x[0], y[0]);
+      ctx.lineTo(x[0], y[1]);
+      ctx.lineTo(x[1], y[1]);
+      ctx.lineTo(x[0], y[0]);
+      ctx.stroke();
+
+      ctx.fillStyle = "black"
+      ctx.font = "30px Arial";
+      ctx.fillText("a= " + Math.floor(x[0] - x[1]),x[1] - (x[1] - x[0]) /2,y[1]  - 20)
+      ctx.fillText("b= " + Math.floor(y[0] - y[1]),x[0],y[1] - (y[1] - y[0]) /2  )
+      ctx.fillText("c= " + Math.floor(Math.sqrt(Math.pow(x[0] - x[1],2) + Math.pow(y[0] - y[1],2))),x[1] - (x[1] - x[0]) /2 - 35,y[1] - (y[1] - y[0]) /2  + 35)
+      ctx.fillText("circles are touching if d <= r[i] + r[j]" ,5,25)
+      ctx.fillText("b=y[i]-y[j]" ,5,60)
+      ctx.fillText("a=x[i]-x[j]" ,5,95)
+      ctx.fillText("c=Math.sqrt(Math.pow(a,2) + Math.pow(b,2))" ,5,130)
+      ctx.fillText("c=distance" ,5,165)
+  }
+</script>

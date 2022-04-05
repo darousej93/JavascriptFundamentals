@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            img {
+                height:100px;
+                position: absolute;
+            }
+        </style>
+
+    </head>
+    <body>
+        <img id="car1" src="https://www.lamborghini.com/sites/it-en/files/DAM/lamborghini/facelift_2019/model_detail/countach/menu/menu_countach_lpi_01.png">
+    </body>
+
+
+</html>
+
+<script>
+    var car1 = document.getElementById("car1")
+    document.addEventListener("keyup",keyUpHandler)
+    var speed = 0
+    var x = 0
+    
+    var friction = .05
+
+    function keyUpHandler(e){
+        if(e.key === " "){
+            x = x + 5
+            car1.style.left = x + "px"
+        }
+    }
+
+   //setInterval(main,50)
+
+    function main(){
+        speed = speed - (speed * friction)
+        if(speed < 0){
+            speed = 0
+        }
+        x = x + speed
+        car1.style.left = x + "px"
+
+        if(x > window.innerWidth){
+            x = -150
+        }
+    }
+
+</script>

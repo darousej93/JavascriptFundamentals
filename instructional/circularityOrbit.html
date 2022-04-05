@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #canvas {
+            border-style: solid;
+            background-color: black;
+            border-width: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" height="2000" width="2000"> </canvas>
+    <div id="count"></div>
+</body>
+
+</html>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    var x = [];
+    var y = [];
+    var speedx = [];
+    var speedy = [];
+    var color = [];
+    var radius = [];
+    var text = []
+    var radiusMax = 1
+    var radiusMin = 1
+    var speedrange = 19;
+    var width = 1500;
+    var height = 1000;
+    var centerSun = true;
+    var collision = true
+    var gravityMultiplier = .5
+    var circlesNumber = 1000
+    for (var i = 0; i < circlesNumber + 1; i = i + 1) {
+        x[i] = Math.random() * (width - radiusMax) + 2;
+        y[i] = Math.random() * (height - radiusMax) + 2;
+        speedx[i] = Math.random() * speedrange - speedrange / 2;
+        speedy[i] = Math.random() * speedrange - speedrange / 2;
+        radius[i] = Math.random() * (radiusMax - radiusMin) + radiusMin;
+        color[i] = "hsl(" + Math.random() * 360 + ", 100%, 50%)";
+    }
+
+    if (centerSun) {
+        x[0] = (width / 2)
+        y[0] = (height / 2)
+        speedx[0] = (0)
+        speedy[0] = (0)
+        radius[0] = (200)
+        color[0] = ("yellow")
+    }
+
+    ctx.fillStyle = "white"
+    setInterval(main, 1);
+    var c = 0
+    function main() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (var i = 0; i < x.length; i++) {
+
+            for (var j = 1; j < x.length; j++) { //you hit the sun, the sun doesn't hit you. we skip 0 (the sun) as j and only have it hit as i
+                if (i != j) {
+
+                    let areaI = Math.PI * (radius[i] * radius[i])
+                    let areaJ = Math.PI * (radius[j] * radius[j])
+                    let distance = Math.hypot(x[i] - x[j], y[i] - y[j]) 
+                    if (collision) {
+                        if (distance < radius[i] + radius[j]) {
+
+                            let newRadius = Math.sqrt((areaI + areaJ) / Math.PI)
+                            let finalSpeedX = (areaI * speedx[i] + areaJ + speedx[j]) / (areaI + areaJ)
+                            let finalSpeedY = (areaI * speedy[i] + areaJ + speedy[j]) / (areaI + areaJ)
+                            if (i === 0) { //the sun doesn't move
+                                speedx[i] = finalSpeedX
+                                speedy[i] = finalSpeedY
+                            }
+                            radius[i] = newRadius
+                            if (radius[j] > radius[i]) {
+                                x[i] = x[j]
+                                y[i] = y[j]
+                                color[i] = color[j]
+                            }
+                            x.splice(j, 1)
+                            speedx.splice(j, 1)
+                            y.splice(j, 1)
+                            speedy.splice(j, 1)
+                            radius.splice(j, 1)
+                            color.splice(j, 1)
+                            continue
+                        }
+                    }
+                    //I'm using the area as the mass
+                    let gravityForce = gravityMultiplier * ((areaI * areaJ) / (distance * distance))
+                    gravityAngle = -Math.atan2(x[j] - x[i], y[j] - y[i]) - (Math.PI / 2)
+                    areaI = areaI * 100
+                    areaJ = areaJ * 100
+                    speedx[i] -= (gravityForce / areaI * Math.cos(gravityAngle))
+                    speedy[i] -= (gravityForce / areaJ * Math.sin(gravityAngle))
+
+
+
+
+
+                }
+            }
+
+            if (isNaN(x[i])) {
+                continue
+            }
+            x[i] = x[i] + speedx[i];
+            y[i] = y[i] + speedy[i];
+            ctx.fillStyle = color[i]
+            ctx.beginPath();
+            ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+            ctx.fill();
+            ctx.font = '20px serif';
+        }
+    }
+</script>

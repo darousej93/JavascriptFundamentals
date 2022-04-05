@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>collision test</title>
+  <style>
+
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+
+  <script>
+    var canvas = document.getElementById("canvas")
+    var ctx = canvas.getContext("2d")
+  
+	setInterval(main,50)
+	
+	var x =125
+	var y  = 5
+	var xspeed= 0
+	var yspeed=3
+	var height = 10
+	var boxheight = 50
+	var topcollide = false
+	var bottomcollide = false
+	var leftcollide = false
+	var rightcollide = false
+	var wpres = false
+	var dpres = false
+	var apres = false
+	var spres = false
+	var spacepres = false
+	var onground = false
+	var walkspeed = 4
+	
+	var boxx=100
+	var boxy=100
+	var boxxspeed=0
+	var boxyspeed= 0
+	
+	
+	document.addEventListener("keydown", keydownpress,false)
+	document.addEventListener("keyup", keyuppress,false)
+
+	function keydownpress(e){
+		if(e.key === "w"){
+			wpres = true
+		}
+		if(e.key === "a"){
+			apres = true
+		}
+		if(e.key === "s"){
+			spres = true
+		}
+		if(e.key === "d"){
+			dpres = true
+		}
+		if(e.key === " "){
+			spacepres = true
+		}
+			
+	}
+	function keyuppress(e){
+		if(e.key === "w"){
+			wpres = false
+		}
+		if(e.key === "a"){
+			apres = false
+		}
+		if(e.key === "s"){
+			spres = false
+		}
+		if(e.key === "d"){
+			dpres = false
+		}
+		if(e.key === " "){
+			spacepres = false
+		}
+	}
+	
+	function movement(){
+		if(wpres){
+			yspeed -= 3
+		}
+		if(dpres){
+			xspeed += walkspeed
+		}
+		if(apres){			
+			xspeed -= walkspeed
+		}
+		if(spres){
+			yspeed += walkspeed / 4
+		}
+		if(spacepres){
+			if(onground){
+				yspeed -= 5
+				spacepres = false
+			}
+		}
+		
+	}
+	
+	function borders(){
+		if(x > 200 - 10){
+			xspeed = -xspeed
+		}
+		if(x < 0){
+			xspeed = -xspeed
+		}
+		if(y > 200 - 10){
+			yspeed = -yspeed
+		}
+		if(y < 0){
+			yspeed = -yspeed
+		}
+	}
+	function boundbox2(){
+		if(x + 10> boxx && x < boxx + 50 && y + 10> boxy && y < boxy + 50){
+				
+				leftcollide = false
+				rightcollide = false
+				topcollide = false
+				bottomcollide = false
+				
+				if( xold + 10 < boxx && x + 10 > boxx){		
+					leftcollide = true
+				}if(xold > boxx + 50 && x < boxx + 50){
+					rightcollide = true
+				}if(yold + 10> boxy && y + 10> boxy ){
+					bottomcollide = true
+				}		
+				if(yold < boxy + 50 && y < boxy + 50){
+					topcollide = true
+				}		
+							
+				slope = (y - yold) / (x - xold)
+				b = (y) - slope * (x)
+				xintercept = ((yold-boxy)/slope)+x
+				yintercept = slope * (boxx - xold)+y
+				
+				//ctx.clearRect(0,0,1000,1000)
+				ctx.strokeStyle = "red"
+				ctx.beginPath()
+				ctx.moveTo(xold+10,yold+10)
+				ctx.lineTo(x+10,y+10)
+				ctx.stroke()
+				ctx.strokeStyle = "gold"
+				ctx.beginPath()
+				ctx.moveTo(xold+10,yold+10)
+				ctx.lineTo((y-b)/slope + 10,slope * x + b +10)
+				ctx.stroke()
+				ctx.fillStyle = "green"
+				ctx.fillRect(xintercept,yintercept,100,1)
+				ctx.fillStyle = "yellow"
+				ctx.fillRect(xintercept,yintercept,1,100)
+				ctx.fillStyle='blue'
+				//ctx.fillRect(boxx,boxy,50,50)
+				
+				if(topcollide){
+					if(xintercept > boxx && xintercept < boxx + 50){ 
+							y = boxy - height
+							yspeed = 0
+						}else if(yintercept > boxy && yintercept < boxy + 50){
+							x = boxx - height
+							xspeed = 0
+						}else{
+							y = boxy - height
+							yspeed = 0
+						}
+				}
+		}
+	}
+	
+	function boundbox(){
+	
+		if(x + 10> boxx && x < boxx + 50 && y + 10> boxy && y < boxy + 50){
+				
+				leftcollide = false
+				rightcollide = false
+				topcollide = false
+				bottomcollide = false
+				
+				if( xold + 10 < boxx && x + 10 > boxx){		
+					leftcollide = true
+				}if(xold > boxx + 50 && x < boxx + 50){
+					rightcollide = true
+				}if(yold + 10> boxy && y + 10> boxy ){
+					bottomcollide = true
+				}		
+				if(yold < boxy + 50 && y < boxy + 50){
+					topcollide = true
+				}		
+							
+				slope = (y - yold) / (x - xold)
+				b = y - slope * x
+				
+				if(topcollide){
+					if(leftcollide || rightcollide){
+						xintercept = slope * boxy + b
+						if(xintercept > boxx && xintercept < boxx + 50){ //if the x intercept is within the box then I know it's hitting the top, otherwise it's hitting the side
+							y = boxy - height
+							yspeed = 0
+						}else{//it's hitting the left side
+							x = boxx - height
+							xspeed = 0
+						}
+					}else{ //straight down
+						//yspeed = 0
+						//y = boxy - height
+					}
+				}else if(bottomcollide){
+					if(leftcollide){ //bottom left
+					
+					}else if(rightcollide){ //bottom right
+						
+					}else{//straight up
+						yspeed = 0
+						y = boxy + boxheight
+					}	
+				}else{ //neither top nor bottom				
+					if(leftcollide){ //just left
+						xspeed = 0
+						x = boxx - height //it's a box, height is width
+					}
+					
+					if(rightcollide){ //just right
+						xspeed = 0
+						x = boxx + boxheight
+					}				
+				}
+				
+				
+				
+		}
+	
+	}	
+	function gravity(){
+		yspeed += walkspeed/5
+	}
+	
+	function main(){
+	
+		xold = x
+		yold = y
+		
+		movement()
+		
+	
+		
+		
+		
+		if(boxx > 200 - 10){
+			boxxspeed = -boxxspeed
+		}
+		if(boxx < 0){
+			boxxspeed = -boxxspeed
+		}
+		if(boxy > 200 - 10){
+			boxyspeed = -boxyspeed
+		}
+		if(boxy < 0){
+			boxyspeed = -boxyspeed
+		}
+		
+		//gravity()
+		
+		x = x + xspeed
+		y = y + yspeed
+		boxx = boxx + boxxspeed
+		boxy = boxy + boxyspeed
+		
+		borders()
+		boundbox2()
+		
+		
+		
+		
+	
+	
+		ctx.clearRect(0,0,1000,1000)
+		ctx.fillStyle='blue'
+		ctx.fillRect(boxx,boxy,50,50)
+		ctx.fillStyle = "black"
+		ctx.fillRect(x,y,10,10)
+	
+	}
+  
+    
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #canvas {
+        border-style: solid;
+
+        border-width: 2px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas" height="700" width="1400"> </canvas>
+    <div id="count"></div>
+  </body>
+</html>
+
+<script>
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  var x = [];
+  var y = [];
+  var speedx = [];
+  var speedy = [];
+  var color = [];
+  var radius = [];
+  var radiusMax = 50;
+  var radiusMin = 10;
+  var speedrange = 30;
+  var width = 1000;
+  var height = 600;
+  var mousex = 0;
+  var mousey = 0;
+  var oldMousex;
+  var oldMousey;
+  var mouseIsDown = false;
+
+  for (var i = 0; i < 60; i = i + 1) {
+    x[i] = Math.random() * (width - radiusMax) + 2;
+    y[i] = Math.random() * (height - radiusMax) + 2;
+    speedx[i] = Math.random() * speedrange - speedrange / 2;
+    speedy[i] = Math.random() * speedrange - speedrange / 2;
+    radius[i] = Math.random() * (radiusMax - radiusMin) + radiusMin;
+    color[i] = "hsl(" + Math.random() * 360 + ", 100%, 50%)";
+  }
+  document.getElementById("canvas").addEventListener("mousemove", mouseTrack);
+  document.getElementById("canvas").addEventListener("mousedown", mouseDown);
+  document.getElementById("canvas").addEventListener("mouseup", mouseUp);
+
+  function mouseDown(e) {
+    mouseIsDown = true;
+    //document.getElementById("count").innerText = mousex - oldMousex;
+  }
+
+  function mouseUp() {
+    speedx[1] = mousex - oldMousex;
+    speedy[1] = mousey - oldMousey;
+    mouseIsDown = false;
+  }
+
+  function mouseTrack(e) {
+    mousex = e.layerX;
+    mousey = e.layerY;
+  }
+
+  setInterval(main, 50);
+
+  function main() {
+    if (mouseIsDown) {
+      x[1] = mousex;
+      y[1] = mousey;
+    }
+    oldMousex = mousex;
+    oldMousey = mousey;
+    ctx.clearRect(0, 0, 2000, 1000);
+
+    for (let i = 0; i < x.length; i++) {
+      if (x[i] > width - radius[i] / 2) {
+        x[i] = width - radius[i] / 2 - 1;
+        speedx[i] = -Math.abs(speedx[i]); //I'm using math.absolute to get the absolute value.
+        //you do this instead of just negating the speed to make sure it's going in the right direction
+        //like if it's going off the right side of the screen, it needs to have a negative xspeed, but if you are just doing -speedx you might end up flipping between -4 and 4
+        //math.abs forces it to be -speedx no matter what.
+      }
+      if (x[i] < 0 + radius[i]) {
+        x[i] = 0 + radius[i] + 1;
+        speedx[i] = Math.abs(speedx[i]);
+      }
+      if (y[i] > height - radius[i] / 2) {
+        y[i] = height - radius[i] / 2 - 1;
+        speedy[i] = -Math.abs(speedy[i]);
+      }
+      if (y[i] < 0 + radius[i]) {
+        y[i] = 0 + radius[i] + 1;
+        speedy[i] = Math.abs(speedy[i]);
+      }
+
+      for (let j = 0; j < x.length; j++) {
+        if (j !== i) {
+          if (Math.hypot(x[i] - x[j], y[i] - y[j]) <= radius[i] + radius[j]) {
+            var tempx = speedx[j]; //temp values because you can't do it without
+            var tempy = speedy[j];
+            speedy[j] = speedy[i];
+            speedx[j] = speedx[i];
+            speedx[i] = tempx;
+            speedy[i] = tempy;
+            
+          
+            } 
+
+            //push code
+
+            var xpush = x[i] - x[j]
+            var ypush = y[i] - y[j]
+
+          }
+        }
+      }
+
+      x[i] = x[i] + speedx[i];
+      y[i] = y[i] + speedy[i];
+
+      ctx.fillStyle = color[i];
+      ctx.beginPath();
+      ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "black";
+    }
+    for (let i = 0; i < x.length; i++) {
+      //I have this for loop after evertyhing else becase I need to draw the lines between circles after all the circles move
+      //the circle move code is in the previous for i loop therefore I have to make this one after that one
+      //It makes sense lol sorry
+      for (var j = 0; j < x.length; j++) {
+        if (j > i) {
+          if (Math.hypot(x[i] - x[j], y[i] - y[j]) <= radius[i] + radius[j]) {
+            ctx.strokeStyle = "red";
+            ctx.globalAlpha = 1;
+          } else {
+            ctx.strokeStyle = "black";
+
+            ctx.globalAlpha = 0.09;
+          }
+          ctx.beginPath(); //draws lines but only to the other ones once. It's a weird algo but it checks out
+          ctx.moveTo(x[i], y[i]);
+          ctx.lineTo(x[j], y[j]);
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+</script>

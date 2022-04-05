@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #canvas {
+            border-style: solid;
+
+            border-width: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" height="700" width="1400"> </canvas>
+    <div id="count"></div>
+</body>
+
+</html>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    var x = [];
+    var y = [];
+    var speedx = [];
+    var speedy = [];
+    var color = [];
+    var radius = [];
+    var radiusMax = 10;
+    var radiusMin = 10;
+    speedrange = 50;
+    var width = 1200;
+    var height = 600;
+    var creationCollisions = 0;
+
+    for (var i = 0; i < 400; i = i + 1) {
+        x[i] = Math.random() * (width - radiusMax) + 2;
+        y[i] = Math.random() * (height - radiusMax) + 2;
+        speedx[i] = Math.random() * speedrange - speedrange / 2;
+        speedy[i] = Math.random() * speedrange - speedrange / 2;
+        radius[i] = Math.random() * (radiusMax - radiusMin) + radiusMin;
+        color[i] = "hsl(" + Math.random() * 360 + ", 100%, 50%)";
+
+    }
+
+
+    setInterval(main, 50);
+
+    function main() {
+        ctx.clearRect(0, 0, 2000, 1000);
+
+        for (var i = 0; i < x.length; i++) {
+
+            x[i] = x[i] + speedx[i];
+            y[i] = y[i] + speedy[i];
+            ctx.fillStyle = color[i];
+            ctx.beginPath();
+            ctx.arc(x[i], y[i], radius[i], 0, Math.PI * 2);
+            ctx.fill();
+
+
+            if (x[i] > width - radius[i] / 2) {
+                speedx[i] = -Math.abs(speedx[i]); 
+            }
+            if (x[i] < 0 + radius[i]) {
+                speedx[i] = Math.abs(speedx[i]);
+            }
+            if (y[i] > height - radius[i] / 2) {
+                speedy[i] = -Math.abs(speedy[i]);
+            }
+            if (y[i] < 0 + radius[i]) {
+                speedy[i] = Math.abs(speedy[i]);
+            }
+
+        }
+    }
+</script>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #dog{
+        display:none;
+      }
+
+      #canvas {
+        border-style: solid;
+
+        border-width: 2px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas" height="700" width="1400"> </canvas>
+    <img id="dog"  src="download.jfif" />
+  </body>
+</html>
+
+<script>
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+    var dog = document.getElementById("dog");
+  window.onload = function () {
+    ctx.drawImage(dog, 10, 10);
+  };
+</script>

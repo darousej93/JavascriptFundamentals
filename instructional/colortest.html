@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>JS Bin</title>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+
+  <script>
+    var canvas = document.getElementById("canvas")
+    var ctx = canvas.getContext("2d")
+    x = 0
+    var multiple = 5
+    setInterval(update,1)
+	//setInterval(slowUpdate,10)
+	
+      var i = 0
+      var j = 0
+	  var offset = 0
+	  var width = 0
+	  var height = 0
+	  var widthspeed = 0
+	  var heightspeed = 1
+	  var colorlist = ['blue','red','green']
+	  
+	function update(){    
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			
+			width = width + widthspeed
+			//canvas.width = width 
+			//canvas.height = width
+			if(width > 800){
+				widthspeed = -1
+			}
+			if(width< 0){
+				widthspeed = 1
+			}
+			var hsl = 'hsl(' + x + ',100%,50%)'
+		  
+			i = 0
+			j = 0
+		  if(offset > 360){
+			offset = 0
+		  }
+			x = offset++
+			while(i <canvas.height ){
+				ctx.fillStyle = 'hsl(' + x + ',100%,50%)'
+					//ctx.fillStyle = colorlist[x]
+				
+				ctx.fillRect(j * multiple, i * multiple, canvas.width, 5 )        
+				if(x >= 360){
+					x = 0
+				}
+				x = x + 1
+				i++
+			}	
+	}
+
+		function slowUpdate(){
+			 x = x + .1
+          j++
+          ctx.fillStyle = 'hsl(' + x + ',100%,50%)'
+          ctx.fillRect(j * multiple, i * multiple, 5, 5 )        
+          if(x > 358){
+            x = 0
+          }
+		  
+		  if(j * multiple > canvas.height){
+			 j = 0
+			i++
+		  }
+		   if(i * multiple>200 ){
+			i = 0
+			j = 0
+		   }
+		  
+		  
+		}
+  </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Movement</title>
+    <style></style>
+  </head>
+  <body>
+    <canvas id="canvas" width="1000" height="700"></canvas>
+    <img
+      id="squid"
+      src="https://www.kindpng.com/picc/m/100-1000469_squidward-tentacles-model-spongebob-battle-for-bikini-bottom.png"
+      style="display: none"
+    />
+
+    <script>
+      var canvas = document.getElementById("canvas");
+      var ctx = canvas.getContext("2d");
+      var img;
+      window.onload = function () {
+        setInterval(update, 50);
+        img = document.getElementById("squid");
+      };
+
+      var x = 125;
+      var y = 5;
+      var xspeed = 20;
+      var yspeed = 0;
+      var friction = 3
+
+      /*
+      the basic idea of rotation based on speed is using the two speeds as your triangles to get 
+      an angle using sin cos and tan. In this case I googled how to do it and this is what I found. you can 
+      use the Math.atan2 to get the angle from the two speeds, using y first and x second. why arctan squared?
+      I have no clue at all, from what I can tell it's some kind of math or something. who knows. anyway you 
+      use that to get your angle in radians and then you suffer through rotation. rotation stinks, all my homies
+      hate rotation. just keep changing things around with the rotation until something works, and the second
+      it works stop messing with it so it doesn't break. I hate it so much. Also take a note that I have some friction
+      that only happens when they bounce and some gravity going on, so that's something. 
+      */
+
+
+
+      function update() {
+        ctx.clearRect(0, 0, 1000, 1000);
+
+        x = x + xspeed;
+        y = y + yspeed;
+        //using the speeds to calculate the angle. note that the angle is in radians not degrees
+        var rotationAngle = Math.atan2(yspeed, xspeed);
+
+        //canvas rotation is trash, here be dragons
+        ctx.save(); //you need this for some reason
+        ctx.translate(x, y); //you are moving the top left of the screen to the pictures location, which is weird
+        ctx.rotate(rotationAngle); //then you rotate. rotation is centered on 0,0 on the canvas, which is why we moved the picture to 0,0 with translate(x,y)
+        ctx.drawImage(img, -50, -50, 100, 100); //you draw the image on the rotated canvas, which would look like it is not rotated. yes it's weird, no I can't explain better
+        //also the previous line uses -50 because the picture is a hundred wide, and i want the center of the picture, which is half the width and height. it's weird
+        ctx.translate(-x, -y); //the reverse of the previous translate, puts the pictrue back in it's place.
+        ctx.restore(); //this unrotates the canvas so the canvas is straight, but now since you did that the picture looks rotated
+        //rotation is the worst thing to ever exist.
+
+        //gravity
+        yspeed = yspeed + 1;
+        
+
+        if (x > canvas.width - 100) {
+          //some bounce code so it don't fly off
+          xspeed = xspeed - friction
+          xspeed = -Math.abs(xspeed);
+        }
+        if (x < 0) {
+          xspeed = xspeed + friction
+          xspeed = Math.abs(xspeed);
+        }
+        if (y > canvas.height - 100) {          
+          yspeed = yspeed - friction
+          yspeed = -Math.abs(yspeed);
+          y = canvas.height - 100;
+        }
+        
+      }
+    </script>
+  </body>
+</html>

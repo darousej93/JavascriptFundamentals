@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>platformer
+    </title>
+    <style>
+        img {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id='canvas' width='900' height="700"></canvas>
+    <img id="collectable1" src="https://benspector3.github.io/projects/platformer/asset/cannon.png">
+    <img id="player" src="https://benspector3.github.io/projects/platformer/asset/halle/phaser-json-array/halle.png">
+    <img id="cannon" src="https://benspector3.github.io/projects/platformer/asset/projectile.png">
+
+    <script>
+        var canvas = document.getElementById("canvas")
+        var ctx = canvas.getContext('2d')
+
+        var halle
+        var collectable
+        var cannon
+        var platform
+        var animationDetails = []
+
+        //setup variables
+        var walkspeed = 2
+        var gravity = 1
+
+
+        //player Variables
+        var playerX = 100
+        var playerY = 100
+        var playerSpeedX = 0
+        var playerSpeedY = 0
+        var playerHeight = 50 //the sprite height of halle is 106 for some reason
+        var heightRatio = playerHeight / 106
+        var playerWidth = 50
+        var upPress = false
+        var leftPress = false
+        var downPress = false
+        var rightPress = false
+        var spacePress = false
+
+        //player Animation variables
+        var currentAnimation = {
+            name: "front-idle",
+            animationIndex: 6,
+            frameIndex: 0,
+          }
+
+        //platform variables
+        var platformX = []
+        var platformY = []
+        var platformWidth = []
+        var platformHeight = []
+
+        //cannon variables
+        var cannonX = []
+        var cannonY = []
+        var cannonProjectileSpeedX = []
+        var cannonProjectileSpeedY = []
+        var cannonPelletsPerSecond = []
+
+        //collectable variables
+        var collectableX = []
+        var collectableY = []
+        var collectableType = []
+        var collectableBounce = []
+
+
+        spriteHeight = 0
+        spriteWidth = 0
+        maxWidth = 0
+        maxHeight = 0
+        spriteX = 0
+        spriteY = 0
+        offsetX = 0
+        offsetY = 0
+        groundY = 0
+
+
+
+        window.addEventListener("load", loadJson);
+
+        function loadJson() {
+            getJSON("halle.json", JsonFunction);//runs this before the setup because of timing things, it's annoying.
+        }
+
+        function setupGame() {
+
+            halle = document.getElementById("player")
+            collectable = document.getElementById("collectable1")
+            cannon = document.getElementById("cannon")
+            platform = document.getElementById("platform1")
+            //create platforms
+            createPlatform(100, 250, 100, 100)
+
+            //create cannons
+            createCannon("top", 200)
+
+            //start game
+            setInterval(main, 250)
+
+        }
+
+
+        function main() {
+            ctx.clearRect(0, 0, 1000, 1000) //erase the screen so you can draw everything in it's most current position. Get rid of this line to see why we need it
+            //ctx.drawImage(imageVaribale, sourceY, SourceX, sourceWidth, sourceHeight, canvasX, canvasY, finalWidth, finalHeight)
+            //https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+            //you only need the extra four source arguments if you want to only display a portion of the picture, if you want to show the whole picture you can just do drawImage(imageVar, canvasx, canvasy, width,height)
+            ctx.fillStyle = "black"
+            ctx.fillRect(playerX + offsetX,playerY + offsetY, maxWidth - offsetX, maxHeight - offsetY)
+            ctx.fillStyle = "red"
+            ctx.fillRect(playerX ,playerY , playerWidth,playerHeight)
+            ctx.fillText(playerSpeedY,playerX,playerY)
+            ctx.drawImage(halle, spriteX, spriteY, spriteWidth, spriteHeight, playerX + offsetX, playerY + offsetY,  playerWidth,  playerHeight)
+
+            playerX = playerX + playerSpeedX
+            playerY = playerY + playerSpeedY
+
+            playerSpeedY = playerSpeedY + gravity
+
+            animate() //this changes halle's picture to the next frame so it looks animated.             
+            keyboardControlActions() //keyboard controls 
+            drawPlatforms()
+            collision()
+        }
+
+        document.addEventListener("keydown", keyDownPress, false)
+        document.addEventListener("keyup", keyuppress, false)
+
+        function animate() {
+            currentAnimation.frameIndex++
+            if (currentAnimation.frameIndex >= animationDetails[currentAnimation.animationIndex].coordinates.length) {
+                currentAnimation.frameIndex = 0
+            }
+            spriteX = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].x
+            spriteY = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].y
+            spriteWidth = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].width
+            spriteHeight = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].height
+            maxWidth = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].swidth
+            maxHeight = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].sheight
+            offsetX = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].dx//* heightRatio
+            offsetY = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].dy//* heightRatio
+            playerWidth = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].width //* heightRatio
+            playerHeight = animationDetails[currentAnimation.animationIndex].coordinates[currentAnimation.frameIndex].height //* heightRatio
+          
+            if(!leftPress && !rightPress && !upPress && !downPress && !spacePress){
+                if(playerSpeedY === 0 && playerSpeedY === 0 && currentAnimation.name !== "front-idle"){
+                    currentAnimation.name = "front-idle"
+                    currentAnimation.animationIndex = 3
+                    currentAnimation.frameIndex = 0
+                }
+            }
+
+        }
+
+        function collision() {
+            //top of player = playerY + offsetY
+            //bottom of player = playerY + maxHeight
+            //left of player = playerX + offsetX
+            //right of player= playerX + maxWidth
+
+            let playerBottom = playerY + maxHeight //you don't need these normally, I just wanted the code to look cleaner
+            let playerTop = playerY + offsetY
+            let playerLeft =playerX + offsetX
+            let playerRight =  playerX + maxWidth
+            //wall collision
+            if (playerRight  > canvas.width - maxWidth) { //right
+                playerSpeedX = 0
+                playerX = canvas.width - maxWidth
+            }
+            if (playerLeft< 0) { //left
+                playerSpeedX = 0
+                playerX = 0
+            }
+            if (playerBottom > canvas.height - maxHeight) { //bottom
+                playerSpeedY = 0
+                playerY = canvas.height - maxHeight
+            }
+            if (playerTop < 0) { //top
+                playerSpeedY = 0
+                playerY = 0
+            }
+
+
+            //platform collision
+            //https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
+            for (var i = 0; i < platformX.length; i++) {
+                if (playerRight>= platformX[i]) { //if the right side of the player is inside of the left side of the platform
+                    if (playerLeft<= platformX[i] + platformWidth[i]) { //and the left side of the player is inside of the right side of the platform
+                        if (playerTop <= platformY[i] + platformHeight[i]) { //top of player is above bottom of platform
+                            if (playerBottom >= platformY[i]) {//bottom of player is below top of platform
+                                //this is the actual collision code. we know we are colliding, so what do we do about it?
+                                if (playerSpeedX > 0) { //I need to keep the player from going into the box, this means I need to know what direction the player was traveling in. if he's going down, I need to teleport him to the top of the box and not the bottom
+                                    
+                                } else {
+
+                                }
+
+                                if (playerSpeedY > 0) { //player is traveling down
+                                    playerY = platformY[i] - maxHeight
+                                    playerSpeedY = 0
+                                }if(playerSpeedY < 0)                                 
+                                    playerY = platformY[i] + platformHeight[i]
+                                else {
+                                    playerSpeedY = 0
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+        }
+
+        function drawPlatforms() {
+            for (var i = 0; i < platformX.length; i++) {
+                ctx.fillStyle = "grey"
+                ctx.fillRect(platformX[i], platformY[i], platformWidth[i], platformHeight[i])
+            }
+        }
+
+        function drawCannons() {
+
+        }
+
+
+        function createPlatform(x, y, width, height) {
+            platformX.push(x)
+            platformY.push(y)
+            platformHeight.push(height)
+            platformWidth.push(width)
+        }
+
+        function createCannon(wallLocation, position) {
+
+        }
+
+        function createProjectile(x, y, xspeed, yspeed) {
+
+
+        }
+
+
+        function detectWhichKeysAreBeingPressed() {
+
+        }
+
+        function keyboardControlActions() {
+            if (upPress) {
+                playerSpeedY -= walkspeed
+            }
+            if (downPress) {
+                playerSpeedY += walkspeed
+            }
+            if (leftPress) {
+                playerSpeedX -= walkspeed
+            }
+            if (rightPress) {
+                playerSpeedX += walkspeed
+            }
+            if (spacePress) {
+                if(playerSpeedY === 0){ //this only lets you jump if you are on the ground
+                playerSpeedY = playerSpeedY - 10
+            }
+            }
+        }
+
+        function keyDownPress(e) { //the e in this parenthesis is a parameter, it contains information about what key you pressed. e is also short for event in this case. 
+            if (e.key === "ArrowUp" || e.key === "w") { // || means or. || is or && is and. if one or the other is true, then true. this if is asking if the key is w or arrowup
+                upPress = true
+            }
+            if (e.key === "ArrowLeft" || e.key === "a") {
+                leftPress = true
+            }
+            if (e.key === "ArrowDown" || e.key === "s") {
+                downPress = true
+            }
+            if (e.key === "ArrowRight" || e.key === "d") {
+                rightPress = true
+            }
+            if (e.key === " ") {
+                spacePress = true
+            }
+
+        }
+        function keyuppress(e) { //keydown and keyup are both needed because both are important. think of a gas pedal: you want to car to know you pressed down the pedal, and you REALLY want it to know when you let up on the gas. 
+            if (e.key === "ArrowUp" || e.key === "w") {
+                upPress = false
+            }
+            if (e.key === "ArrowLeft" || e.key === "a") {
+                leftPress = false
+            }
+            if (e.key === "ArrowDown" || e.key === "s") {
+                downPress = false
+            }
+            if (e.key === "ArrowRight" || e.key === "d") {
+                rightPress = false
+            }
+            if (e.key === " ") {
+                spacePress = false
+            }
+        }
+
+        var getJSON = function (url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.responseType = "json";
+            xhr.onload = function () {
+                var status = xhr.status;
+                if (status === 200) {
+                    callback(null, xhr.response);
+                    setupGame()
+                } else {
+                    callback(status, xhr.response);
+                }
+            };
+            xhr.send();
+        };
+
+        function JsonFunction(status, response) {
+            console.log(response);
+            var listOfFrameNames
+            for (var i = 0; i < response.frames.length; i++) {
+                //for (let j = 0; j < cleanFilenames.length; j++) {
+                var shorterFilename = response.frames[i].filename.replace(/-(\d)+.png/, "")
+                var nameExists = false
+                for (j = 0; j < animationDetails.length; j++) {
+                    if (shorterFilename === animationDetails[j].filename) {//check to see if name already exists
+                        nameExists = true
+
+                        animationDetails[j].coordinates.push(
+                            {
+                                x: response.frames[i].frame.x,
+                                y: response.frames[i].frame.y,
+                                width: response.frames[i].frame.w,
+                                height: response.frames[i].frame.h,
+                                swidth: response.frames[i].sourceSize.w,
+                                sheight: response.frames[i].sourceSize.h,
+                                dx: response.frames[i].spriteSourceSize.x,
+                                dy: response.frames[i].spriteSourceSize.y,
+                                framesData: response.frames[i],
+                            }
+                        )
+                    }
+                }
+                if (nameExists === false) {
+                    animationDetails.push(
+                        {
+                            filename: shorterFilename,
+                            coordinates: [
+                                {
+                                    x: response.frames[i].frame.x,
+                                    y: response.frames[i].frame.y,
+                                    width: response.frames[i].frame.w,
+                                    height: response.frames[i].frame.h,
+                                    swidth: response.frames[i].sourceSize.w,
+                                    sheight: response.frames[i].sourceSize.h,
+                                    dx: response.frames[i].spriteSourceSize.x,
+                                    dy: response.frames[i].spriteSourceSize.y,
+                                    framesData: response.frames[i],
+                                }
+                            ]
+                        }
+                    )
+
+
+                }
+
+            }
+
+
+
+        }
+    </script>
+</body>
+
+</html>

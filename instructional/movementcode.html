@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Movement</title>
+  <style>
+
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+
+  <script>
+    var canvas = document.getElementById("canvas")
+    var ctx = canvas.getContext("2d")
+  
+	
+	var x =125
+	var y  = 5
+	var xspeed= 0
+	var yspeed=0
+	var wpres = false
+	var dpres = false
+	var apres = false
+	var spres = false
+	
+	
+	document.addEventListener("keydown", keydownpress,false)
+	document.addEventListener("keyup", keyuppress,false)
+	setInterval(update, 50)
+
+	function keydownpress(e){
+		if(e.key === "w"){
+			wpres = true
+		}
+		if(e.key === "a"){
+			apres = true
+		}
+		if(e.key === "s"){
+			spres = true
+		}
+		if(e.key === "d"){
+			dpres = true
+		}
+			
+	}
+	function keyuppress(e){
+		if(e.key === "w"){
+			wpres = false
+		}
+		if(e.key === "a"){
+			apres = false
+		}
+		if(e.key === "s"){
+			spres = false
+		}
+		if(e.key === "d"){
+			dpres = false
+		}
+	}
+	
+	function update(){
+		ctx.clearRect(0,0,1000,1000)
+		x = x + xspeed
+		y = y + yspeed
+
+		ctx.fillRect(x,y,100,100)
+
+		if(wpres === true){
+			yspeed = yspeed - 1	
+		}
+		if(apres === true){
+			xspeed = xspeed - 1
+		}
+		if(spres === true){
+			yspeed = yspeed + 1
+		}
+		if(dpres === true){
+			xspeed = xspeed + 1
+		}
+	}
+    
+  </script>
+</body>
+</html>
+
